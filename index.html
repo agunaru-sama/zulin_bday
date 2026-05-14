@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Gift For You</title>
+    <style>
+        body, html { 
+            margin: 0; padding: 0; height: 100%; 
+            overflow: hidden; background-color: #1a1a2e; 
+        }
+        iframe { width: 100%; height: 100%; border: none; display: block; }
+
+        #start-overlay { 
+            position: fixed; top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(20, 10, 20, 0.95); 
+            color: #ffc1db; display: flex; 
+            flex-direction: column; justify-content: center; 
+            align-items: center; z-index: 9999; 
+            font-family: 'Courier New', monospace; text-align: center;
+        }
+
+        .play-btn { 
+            padding: 15px 40px; font-size: 18px; font-weight: bold;
+            cursor: pointer; border-radius: 30px; 
+            background: linear-gradient(145deg, #df658a, #b14162); 
+            color: white; border: none; 
+            box-shadow: 0 5px 15px rgba(223, 101, 138, 0.4);
+            transition: transform 0.2s;
+        }
+        .play-btn:hover { transform: scale(1.05); }
+        
+        #song-info {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #df658a;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h2>Ada kejutan buat kamu...</h2>
+        <button class="play-btn" onclick="mulaiKejutan()">Buka Sekarang</button>
+        <div id="song-info">Klik untuk memutar playlist spesial ✨</div>
+    </div>
+
+    <audio id="bg-music"></audio>
+
+    <iframe id="layar-utama" src=""></iframe>
+
+    <script>
+        // 1. DAFTAR LAGU KAMU
+        // Tambahkan nama file lagu kamu di sini sebanyak yang kamu mau
+        const playlist = [
+            '1.mp3',
+            '2.mp3',
+            '3.mp3',
+            '4.mp3',
+            '5.mp3',
+            '6.mp3',
+            '7.mp3',
+            '8.mp3',
+            '9.mp3'
+        ];
+
+        let currentSongIndex = 0;
+        const musik = document.getElementById('bg-music');
+
+        function putarLagu(index) {
+            if (index >= playlist.length) {
+                currentSongIndex = 0; // Balik ke lagu pertama jika sudah habis
+            } else {
+                currentSongIndex = index;
+            }
+            
+            musik.src = playlist[currentSongIndex];
+            musik.load();
+            musik.play().catch(e => console.log("Menunggu interaksi user..."));
+            console.log("Sedang memutar: " + playlist[currentSongIndex]);
+        }
+
+        // 2. OTOMATIS GANTI LAGU SAAT SELESAI
+        musik.addEventListener('ended', function() {
+            currentSongIndex++; 
+            putarLagu(currentSongIndex);
+        });
+
+        function mulaiKejutan() {
+            document.getElementById('start-overlay').style.display = 'none';
+            
+            musik.volume = 0.5;
+            putarLagu(0); // Mulai dari lagu pertama
+            
+            document.getElementById('layar-utama').src = '../unlock message/index.html';
+        }
+    
+            // PENDENGAR SINYAL DARI GAMEBOY
+        window.addEventListener('message', function(event) {
+            const musikUtama = document.getElementById('bg-music');
+            if (!musikUtama) return;
+
+            if (event.data === 'VOLUME_DOWN') {
+                // Kecilkan volume jadi sangat pelan (10%) saat buka menu music
+                musikUtama.volume = 0.1;
+                console.log("Volume diturunkan");
+            } else if (event.data === 'VOLUME_UP') {
+                // Kembalikan volume ke normal (50%) saat keluar menu music
+                musikUtama.volume = 0.5;
+                console.log("Volume dinaikkan");
+            }
+        });
+    </script>
+</body>
+</html>
