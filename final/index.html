@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surat Cinta & Photostrip</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* RESET & BACKGROUND */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #fce4ec;
+            background-image: repeating-linear-gradient(45deg, #f8bbd0 25%, transparent 25%, transparent 75%, #f8bbd0 75%, #f8bbd0), 
+                              repeating-linear-gradient(45deg, #f8bbd0 25%, #fce4ec 25%, #fce4ec 75%, #f8bbd0 75%, #f8bbd0);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+            font-family: sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 50px 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 120px; 
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* PHOTOSTRIP STYLING */
+        .photostrip {
+            background: white;
+            padding: 15px 15px 10px 15px;
+            box-shadow: 2px 5px 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            transform: rotate(-3deg);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 250px;
+            z-index: 10;
+        }
+
+        .photo-frame {
+            width: 100%;
+            aspect-ratio: 3 / 4; 
+            background-color: #333; 
+            overflow: hidden;
+            opacity: 0; 
+            transform: translateY(20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .photo-frame.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            filter: grayscale(20%);
+        }
+
+        .love-label {
+            text-align: center;
+            font-family: 'Times New Roman', serif;
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffb6c1;
+            letter-spacing: 5px;
+            margin-top: 5px;
+        }
+
+        /* ENVELOPE & LETTER STYLING */
+        .envelope-container {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            cursor: pointer;
+            /* Tambahan animasi margin-bottom agar saat suratnya panjang, layarnya ikut merenggang */
+            transition: transform 0.3s ease, margin-bottom 0.6s ease;
+        }
+
+        .envelope-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .envelope-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #d86888;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        /* Kertas Surat */
+        .letter {
+            position: absolute;
+            width: 90%;
+            left: 5%;
+            top: 120px; 
+            height: 60px; /* Awalnya 60px (kondisi terlipat) */
+            background: #fffdf5; 
+            border-radius: 5px;
+            z-index: 2; 
+            transition: transform 0.6s ease, height 0.6s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: flex-start; /* Diubah agar teks panjang rapi dari atas */
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Garis tipis seolah lipatan kertas */
+        .letter::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: rgba(0,0,0,0.05);
+            top: 50%;
+            transition: opacity 0.3s;
+        }
+
+        .envelope-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .envelope-front::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-left: 150px solid #e07a9a;
+            border-right: 150px solid #e07a9a;
+            border-top: 100px solid transparent;
+            border-bottom: 100px solid #e07a9a;
+        }
+
+        .heart-seal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #d32f2f;
+            font-size: 40px;
+            z-index: 4;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: opacity 0.5s ease;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-top: 110px solid #f290ae;
+            z-index: 4;
+            transform-origin: top;
+            transition: transform 0.5s ease;
+        }
+
+        .click-text {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Caveat', cursive;
+            font-size: 24px;
+            color: #d86888;
+            font-weight: bold;
+            animation: bounce 1.5s infinite;
+        }
+
+        /* Teks di dalam surat */
+        .letter-content {
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            width: 100%;
+            padding: 40px 20px; /* Padding sedikit dilebarkan agar teks tidak terlalu mepet tepi */
+            text-align: center;
+            font-family: 'Caveat', cursive;
+            font-size: 22px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        /* ======= KELAS ANIMASI SEQUENCE ======= */
+
+        .flap-open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1; 
+        }
+        .flap-open .heart-seal {
+            opacity: 0;
+        }
+
+        .letter-up .letter {
+            transform: translateY(-200px); 
+        }
+
+        .letter-unfold .letter {
+            /* Tinggi (height) dihapus dari sini, karena sekarang diatur otomatis lewat JavaScript */
+            transform: translateY(-80px); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .letter-unfold .letter::before {
+            opacity: 0; 
+        }
+
+        .letter-content.show-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, -10px); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="photostrip">
+            <div class="photo-frame">
+                <img src="./images/photo1.jpg" alt="Foto 1">
+            </div>
+            <div class="photo-frame">
+                <img src="./images/photo2.jpg" alt="Foto 2">
+            </div>
+            <div class="photo-frame">
+                <img src="./images/photo3.jpg" alt="Foto 3">
+            </div>
+            <div class="love-label">LOVE ♥</div>
+        </div>
+
+        <div class="envelope-container" id="envelope">
+            <div class="envelope-back"></div>
+            
+            <div class="letter">
+                <div class="letter-content">
+                    Dear Istriku,<br><br>
+                    Happy Birthdayy Sayanggg 🎉🤍<br>
+                    semogaaa di umur yang baruu inii kamuuu selaluu sehatt, bahagiaaa, dan semuaa yang kamuu doakan bisaa tercapaiii.<br><br>
+                    akuu cumaa mauuu bilanggg, i'm so proud of youu sayanggg. akuu banggaaaa buangett samaa hati kamuu yang baikkk dan segalaaa usahaa kamuuu, terimakasiii banyaa yyaa sayanggg<br><br>
+                    maafinnn akuu yyaaa sayanggg, dihari ulang tahun kamuu akuuu belumm bisaa ikut merayakan, belum bisaa ikut ngasi kue ultah, belum bisaa ngasii banyaa hall. maafff buattt segalanyaa yaa sayanggg<br><br>
+                    I loveee uu so muchh bb🤍
+                </div>
+            </div>
+            
+            <div class="envelope-front"></div>
+            <div class="envelope-flap"></div>
+            <div class="heart-seal">♥</div>
+            <div class="click-text">Buka aku!</div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Animasi Foto
+            const photos = document.querySelectorAll('.photo-frame');
+            photos.forEach((photo, index) => {
+                setTimeout(() => {
+                    photo.classList.add('show');
+                }, index * 800 + 500); 
+            });
+
+            // Animasi Amplop
+            const envelope = document.getElementById('envelope');
+            const letter = document.querySelector('.letter');
+            const letterContent = document.querySelector('.letter-content');
+            const clickText = document.querySelector('.click-text');
+            
+            let isOpen = false;
+            let isAnimating = false;
+
+            envelope.addEventListener('click', function() {
+                if(isAnimating) return;
+                isAnimating = true;
+
+                if (!isOpen) {
+                    // === SEQUENCE MEMBUKA ===
+                    clickText.style.display = 'none';
+                    
+                    envelope.classList.add('flap-open');
+                    
+                    setTimeout(() => {
+                        envelope.classList.add('letter-up');
+                        
+                        setTimeout(() => {
+                            letter.style.zIndex = '5';
+                            envelope.classList.add('letter-unfold');
+                            
+                            // MENGHITUNG TINGGI KERTAS OTOMATIS
+                            // Membaca seberapa tinggi teksnya, lalu set tinggi kertas agar pas
+                            const contentHeight = letterContent.scrollHeight;
+                            letter.style.height = contentHeight + 'px';
+                            
+                            // Memberi ruang ekstra di bawah amplop agar halaman bisa di-scroll ke bawah kalau teksnya sangat panjang
+                            envelope.style.marginBottom = (contentHeight - 100) + 'px';
+                            
+                            setTimeout(() => {
+                                letterContent.classList.add('show-text');
+                                isOpen = true;
+                                isAnimating = false;
+                            }, 500); 
+                            
+                        }, 500); 
+                        
+                    }, 500); 
+                    
+                } else {
+                    // === SEQUENCE MENUTUP ===
+                    letterContent.classList.remove('show-text');
+                    
+                    setTimeout(() => {
+                        envelope.classList.remove('letter-unfold');
+                        
+                        // KEMBALIKAN KERTAS KE UKURAN LIPATAN
+                        letter.style.height = '60px'; 
+                        envelope.style.marginBottom = '0px';
+                        
+                        setTimeout(() => {
+                            letter.style.zIndex = '2';
+                            envelope.classList.remove('letter-up');
+                            
+                            setTimeout(() => {
+                                envelope.classList.remove('flap-open');
+                                clickText.style.display = 'block';
+                                isOpen = false;
+                                isAnimating = false;
+                            }, 500);
+                            
+                        }, 500);
+                        
+                    }, 300);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
